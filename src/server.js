@@ -26,7 +26,7 @@ async function getSeq () {
     timezone: '+08:00',
     logging: false,
     pool: {
-      max: 50,
+      max: 5,
       min: 0,
       acquire: 30000,
       idle: 10000
@@ -274,7 +274,7 @@ async function getSeq () {
           console.error(e.message)
         }
       }
-    }, 1000 * 60)
+    }, 1000 * 9)
   } catch (e) {
     console.error(e.message)
     setTimeout(getSeq, 1000 * 60 * 5)
