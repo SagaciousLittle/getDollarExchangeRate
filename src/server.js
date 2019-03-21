@@ -269,7 +269,7 @@ async function getSeq () {
           })
           AliJudicialSell.create(target)
           t2 = resHouseInfo.join()
-          console.log(`阿里司法拍卖 - ${t2}`)
+          console.log(`阿里司法拍卖 - time: ${moment().format('YYYY-MM-DD HH:mm:ss')}, data: ${t2}`)
         } catch (e) {
           console.error(e.message)
         }
