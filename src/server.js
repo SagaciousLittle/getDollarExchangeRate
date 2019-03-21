@@ -3,6 +3,7 @@ import Sequelize from 'sequelize'
 import moment from 'moment'
 import jsdom from 'jsdom'
 import iconv from 'iconv-lite'
+import _ from 'lodash'
 import Info from './Info'
 
 const {
@@ -44,22 +45,112 @@ async function getSeq () {
 
   // 阿里司法拍卖
   const AliJudicialSell = sequelize.define('AliJudicialSell', {
-    all: {
+    all_all: {
       type: Sequelize.INTEGER
     },
-    beijing: {
+    all_underway: {
       type: Sequelize.INTEGER
     },
-    tianjin: {
+    all_soon: {
       type: Sequelize.INTEGER
     },
-    shanghai: {
+    all_past: {
       type: Sequelize.INTEGER
     },
-    hebei: {
+    all_termination: {
       type: Sequelize.INTEGER
     },
-    shanxi: {
+    all_withdraw: {
+      type: Sequelize.INTEGER
+    },
+    beijing_all: {
+      type: Sequelize.INTEGER
+    },
+    beijing_underway: {
+      type: Sequelize.INTEGER
+    },
+    beijing_soon: {
+      type: Sequelize.INTEGER
+    },
+    beijing_past: {
+      type: Sequelize.INTEGER
+    },
+    beijing_termination: {
+      type: Sequelize.INTEGER
+    },
+    beijing_withdraw: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_all: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_underway: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_soon: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_past: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_termination: {
+      type: Sequelize.INTEGER
+    },
+    tianjin_withdraw: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_all: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_underway: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_soon: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_past: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_termination: {
+      type: Sequelize.INTEGER
+    },
+    shanghai_withdraw: {
+      type: Sequelize.INTEGER
+    },
+    hebei_all: {
+      type: Sequelize.INTEGER
+    },
+    hebei_underway: {
+      type: Sequelize.INTEGER
+    },
+    hebei_soon: {
+      type: Sequelize.INTEGER
+    },
+    hebei_past: {
+      type: Sequelize.INTEGER
+    },
+    hebei_termination: {
+      type: Sequelize.INTEGER
+    },
+    hebei_withdraw: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_all: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_underway: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_soon: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_past: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_termination: {
+      type: Sequelize.INTEGER
+    },
+    shanxi_withdraw: {
       type: Sequelize.INTEGER
     }
   })
@@ -100,28 +191,85 @@ async function getSeq () {
     // house
     let t2
     setInterval(async () => {
-      const resHouseInfo = (await Promise.all([
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969'),
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969&city=&province=%B1%B1%BE%A9'),
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969&city=&province=%CC%EC%BD%F2'),
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969&city=&province=%C9%CF%BA%A3'),
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969&city=&province=%BA%D3%B1%B1'),
-        axios.get('https://sf.taobao.com/item_list.htm?category=50025969&city=&province=%C9%BD%CE%F7'),
-      ])).map(o => {
+      let resHouseInfo = (await Promise.all(_.flatten([
+        '',
+        '%B1%B1%BE%A9',
+        '%CC%EC%BD%F2',
+        '%C9%CF%BA%A3',
+        '%BA%D3%B1%B1',
+        '%C9%BD%CE%F7'
+      ].map(o => {
+        let t = `https://sf.taobao.com/item_list.htm?category=50025969&city=&province=${o}&sorder=`
+        return [
+          axios.get(t + -1),
+          axios.get(t + 0),
+          axios.get(t + 1),
+          axios.get(t + 2),
+          axios.get(t + 4),
+          axios.get(t + 5)
+        ]
+      })))).map(o => {
         return new JSDOM(o.data).window.document.querySelector('h1').textContent.match(/\d+/g)[0]
       })
       if (t2 !== resHouseInfo.join()) {
         try {
-          AliJudicialSell.create({
-            all: resHouseInfo[0],
-            beijing: resHouseInfo[1],
-            tianjin: resHouseInfo[2],
-            shanghai: resHouseInfo[3],
-            hebei: resHouseInfo[4],
-            shanxi: resHouseInfo[5]
+          resHouseInfo = _.chunk(resHouseInfo, 6)
+          let target = {}
+          resHouseInfo.forEach((o, i) => {
+            let name
+            switch (i) {
+              case 0:
+                name = 'all'
+                break
+              case 1:
+                name = 'beijing'
+                break
+              case 2:
+                name = 'tianjin'
+                break
+              case 3:
+                name = 'shanghai'
+                break
+              case 4:
+                name = 'hebei'
+                break
+              case 5:
+                name = 'shanxi'
+                break
+            }
+            o.forEach((ob, ind) => {
+              let fun
+              switch (ind) {
+                case 0:
+                  fun = '_all'
+                  break
+                case 1:
+                  // 正在进行
+                  fun = '_underway'
+                  break
+                case 2:
+                  // 即将开始
+                  fun = '_soon'
+                  break
+                case 3:
+                  // 过去
+                  fun = '_past'
+                  break
+                case 4:
+                  // 终止
+                  fun = '_termination'
+                  break
+                case 5:
+                  // 撤回
+                  fun = '_withdraw'
+                  break
+              }
+              target[name + fun] = ob
+            })
           })
+          AliJudicialSell.create(target)
           t2 = resHouseInfo.join()
-          console.log(t2)
+          console.log(`阿里司法拍卖 - ${t2}`)
         } catch (e) {
           console.error(e.message)
         }
