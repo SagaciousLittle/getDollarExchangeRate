@@ -45,7 +45,7 @@ async function getSeq () {
       const res = await axios.get(`https://hq.sinajs.cn/rn=${Date.now()}list=fx_susdcny`)
       // 数据，0为时间，2为汇率
       const d = res.data.split('="')[1].split(',')
-      const time = moment(moment().format('YYYY-MM-DD') + ` ${d[0]}`, 'YYYY-MM-DD HH:mm:ss')._d
+      const time = moment([...d].reverse()[0] + ` ${d[0]}`, 'YYYY-MM-DD HH:mm:ss')._d
       // 判断时间是否已存在
       const t = await DollarExchangeRate.findAll({
         where: {
@@ -58,6 +58,7 @@ async function getSeq () {
           rate: d[2]
         })
         r = res.data
+        console.log(`time: ${moment(time).format('YYYY-MM-DD HH:mm:ss')}, rate: ${d[2]}`)
       }
     }, 10000)
   } catch (e) {
